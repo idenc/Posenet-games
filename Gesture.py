@@ -220,7 +220,7 @@ class Gesture:
             r_knee_y = frame[14][0]
             l_dist = abs(l_hand_y - l_knee_y)
             r_dist = abs(r_hand_y - r_knee_y)
-            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_dist <= 100 and r_dist <= 100:
+            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_dist <= 70 and r_dist <= 70:
                 if "CROUCH" not in self.gesture:
                     self.gesture.append("CROUCH")
                 print("CROUCH")

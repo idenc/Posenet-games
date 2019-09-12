@@ -52,8 +52,9 @@ class Gesture:
         self.keyboard = Controller()
         self.start = True
 
-        subprocess.Popen(["/usr/games/mednafen", "-psx.dbg_level", "0", "-video.fs", "0", "-cheats", "1",
-                          "/home/pi/Downloads/NES_Roms/" + game + ".nes"])
+        subprocess.Popen(
+            ["/usr/games/mednafen", "-psx.dbg_level", "0", "sftoggle", "1", "-video.fs", "0", "-cheats", "1",
+             "/home/pi/Downloads/NES_Roms/" + game + ".nes"])
         ti.sleep(1)
         with self.keyboard.pressed(Key.ctrl):
             with self.keyboard.pressed(Key.alt):
@@ -161,7 +162,7 @@ class Gesture:
                 r_elbow = frame[8]
                 l_wrist = frame[9]
                 r_wrist = frame[10]
-                delta = np.linalg.norm(l_shoulder - r_shoulder)
+                delta = np.linalg.norm(l_shoulder - r_shoulder) * 0.5
                 dir = ""
                 # Check that wrist x coord is at least delta distance from shoulder x coord
                 if abs(l_shoulder[1] - l_wrist[1]) > delta:  # Check left arm

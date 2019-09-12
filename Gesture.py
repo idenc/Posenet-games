@@ -104,7 +104,8 @@ class Gesture:
 
         self.keypoints.append(keypoints[0])
 
-        if pygame.time.get_ticks() - self.check_time >= self.wait_length:
+        #if pygame.time.get_ticks() - self.check_time >= self.wait_length:
+        if len(self.keypoints) > 0:
             self.gesture = []
             self.check_time = pygame.time.get_ticks()
             self.check_crouch()
@@ -154,7 +155,7 @@ class Gesture:
             self.keyboard.release(Key.enter)
 
     def check_run(self):
-        if not any("RUNNING" in string for string in self.gesture):
+        if not any("RUNNING" in string for string in self.gesture) and "JUMP" not in self.gesture:
             for frame in self.keypoints:
                 l_shoulder = frame[5]
                 r_shoulder = frame[6]

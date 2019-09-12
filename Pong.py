@@ -115,7 +115,7 @@ class Pong:
         self.ball_pos = [self.WIDTH // 2, self.HEIGHT // 2]
         # Random ball beginning speed and direction
         horz = random.randrange(self.WIDTH // 8, self.WIDTH // 7)
-        vert = random.randrange(self.HEIGHT // 6, self.HEIGHT // 6)
+        vert = random.randrange(-(self.HEIGHT // 6), self.HEIGHT // 6)
 
         if not right:
             horz = - horz

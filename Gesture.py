@@ -146,8 +146,8 @@ class Gesture:
     def check_run(self):
         if not any("RUNNING" in string for string in self.gesture):
             for frame in self.keypoints:
-                l_knee = frame[15]
-                r_knee = frame[16]
+                l_knee = frame[13]
+                r_knee = frame[14]
                 l_hip = frame[11]
                 r_hip = frame[12]
                 if abs(l_knee[0] - r_knee[0]) > np.linalg.norm(l_hip - r_hip) * 0.40:

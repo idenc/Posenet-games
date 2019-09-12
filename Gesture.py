@@ -2,6 +2,7 @@ import numpy as np
 import posenet_interface
 import pygame
 import subprocess
+import sys
 import time as ti
 
 from pygame import *
@@ -17,6 +18,10 @@ class Gesture:
     def __init__(self, game, width=None, height=None, pnet=None):
         pygame.init()
         self.clock = pygame.time.Clock()
+        if len(sys.argv > 1):
+            self.buffer_time = int(sys.argv[1])
+        else:
+            self.buffer_time = 300
 
         if width and height:
             self.WIDTH = width
@@ -98,7 +103,7 @@ class Gesture:
 
         self.keypoints.append(keypoints[0])
 
-        if pygame.time.get_ticks() - self.check_time >= 300:
+        if pygame.time.get_ticks() - self.check_time >= self.buffer_time:
             self.gesture = []
             self.check_time = pygame.time.get_ticks()
             self.check_crouch()
@@ -110,7 +115,7 @@ class Gesture:
             del self.keypoints[:len(self.keypoints) - 1]
             if self.game == "Tetris":
                 self.release_keys()
-            elif pygame.time.get_ticks() - self.buffer_time >= 350:
+            elif pygame.time.get_ticks() - self.buffer_time >= self.buffer_time + 50:
                 self.buffer_time = pygame.time.get_ticks()
 
                 if "RUNNING LEFT" not in self.gesture:
@@ -126,7 +131,7 @@ class Gesture:
                 if "ENTER" not in self.gesture:
                     self.keyboard.release(Key.enter)
 
-            if pygame.time.get_ticks() - self.jump_time >= 500:
+            if pygame.time.get_ticks() - self.jump_time >= self.buffer_time + 200:
                 self.jump_time = pygame.time.get_ticks()
                 if "JUMP" not in self.gesture:
                     self.keyboard.release('f')
@@ -234,14 +239,15 @@ class Gesture:
         self.keyboard.press('f')
 
     def check_jump(self):
-        for frame in self.keypoints:
-            l_hand_y = frame[9][0]
-            r_hand_y = frame[10][0]
-            l_elbow_y = frame[7][0]
-            r_elbow_y = frame[8][0]
-            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_hand_y < l_elbow_y and r_hand_y < r_elbow_y:
-                self.jump()
-                return
+        if not any("RUNNING" in string for string in self.gesture):
+            for frame in self.keypoints:
+                l_hand_y = frame[9][0]
+                r_hand_y = frame[10][0]
+                l_elbow_y = frame[7][0]
+                r_elbow_y = frame[8][0]
+                if l_hand_y != 0.0 and r_hand_y != 0.0 and l_hand_y < l_elbow_y and r_hand_y < r_elbow_y:
+                    self.jump()
+                    return
 
     def check_hips(self):
         hip_pose = True

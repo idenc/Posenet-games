@@ -18,10 +18,10 @@ class Gesture:
     def __init__(self, game, width=None, height=None, pnet=None):
         pygame.init()
         self.clock = pygame.time.Clock()
-        if len(sys.argv > 1):
-            self.buffer_time = int(sys.argv[1])
+        if len(sys.argv) > 1:
+            self.wait_length = int(sys.argv[1])
         else:
-            self.buffer_time = 300
+            self.wait_length = 300
 
         if width and height:
             self.WIDTH = width
@@ -103,7 +103,7 @@ class Gesture:
 
         self.keypoints.append(keypoints[0])
 
-        if pygame.time.get_ticks() - self.check_time >= self.buffer_time:
+        if pygame.time.get_ticks() - self.check_time >= self.wait_length:
             self.gesture = []
             self.check_time = pygame.time.get_ticks()
             self.check_crouch()
@@ -115,7 +115,7 @@ class Gesture:
             del self.keypoints[:len(self.keypoints) - 1]
             if self.game == "Tetris":
                 self.release_keys()
-            elif pygame.time.get_ticks() - self.buffer_time >= self.buffer_time + 50:
+            elif pygame.time.get_ticks() - self.buffer_time >= self.wait_length + 50:
                 self.buffer_time = pygame.time.get_ticks()
 
                 if "RUNNING LEFT" not in self.gesture:
@@ -131,7 +131,7 @@ class Gesture:
                 if "ENTER" not in self.gesture:
                     self.keyboard.release(Key.enter)
 
-            if pygame.time.get_ticks() - self.jump_time >= self.buffer_time + 200:
+            if pygame.time.get_ticks() - self.jump_time >= self.wait_length + 200:
                 self.jump_time = pygame.time.get_ticks()
                 if "JUMP" not in self.gesture:
                     self.keyboard.release('f')

@@ -90,7 +90,7 @@ class RoadCaster:
 
         self.player_height = 64 / 2
         self.player_pos = [self.WIDTH // 4, int((self.WIDTH // 4) * 1.4)]
-        self.car_pos = [(self.WIDTH // 2), (self.WIDTH // 2) - 80]
+        self.car_pos = [(self.WIDTH // 2), self.HEIGHT - (self.HEIGHT // 5)]
         view_angle = 90
 
         # Center of the Projection Plane
@@ -426,5 +426,5 @@ class RoadCaster:
 
 
 if __name__ == "__main__":
-    rc = RoadCaster(720, 480)
+    rc = RoadCaster(640,480)
     rc.run()

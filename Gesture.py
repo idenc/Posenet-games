@@ -53,7 +53,7 @@ class Gesture:
         self.start = True
 
         subprocess.Popen(
-            ["/usr/games/mednafen", "-psx.dbg_level", "0", "sftoggle", "1", "-video.fs", "0", "-cheats", "1",
+            ["/usr/games/mednafen", "-psx.dbg_level", "0", "-sftoggle", "1", "-video.fs", "0", "-cheats", "1",
              "/home/pi/Downloads/NES_Roms/" + game + ".nes"])
         ti.sleep(1)
         with self.keyboard.pressed(Key.ctrl):

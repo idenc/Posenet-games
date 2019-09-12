@@ -1,13 +1,14 @@
 # Code adapted from https://github.com/hamdyaea/Daylight-Pong-python3
 import argparse
 import random
-import pygame
-import numpy as np
 import sys
+from threading import Thread, enumerate
+
+import numpy as np
+import pygame
+from pygame import *
 
 import posenet_interface
-from pygame import *
-from threading import Thread, enumerate
 
 WHITE = (255, 255, 255)
 ORANGE = (255, 140, 0)
@@ -113,8 +114,8 @@ class Pong:
     def ball_init(self, right):
         self.ball_pos = [self.WIDTH // 2, self.HEIGHT // 2]
         # Random ball beginning speed and direction
-        horz = random.randrange(120, 160)
-        vert = random.randrange(-120, 120)
+        horz = random.randrange(self.WIDTH // 8, self.WIDTH // 7)
+        vert = random.randrange(self.HEIGHT // 6, self.HEIGHT // 6)
 
         if not right:
             horz = - horz

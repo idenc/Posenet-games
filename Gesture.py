@@ -1,6 +1,5 @@
 import numpy as np
 import posenet_interface
-import psutil, os
 import pygame
 import subprocess
 import time as ti
@@ -9,9 +8,6 @@ from pygame import *
 from pynput.keyboard import Key, Controller
 from posenet.utils import angle_between
 
-
-# p = psutil.Process(os.getpid())
-# p.nice(-20)
 
 def sign(x):
     return 1 - (x <= 0)
@@ -50,13 +46,14 @@ class Gesture:
         self.keyboard = Controller()
         self.start = True
 
-        subprocess.Popen(["/usr/games/mednafen", "-psx.dbg_level", "0", "-video.fs", "0", "-cheats", "1", "/home/pi/Downloads/NES_Roms/" + game + ".nes"])
+        subprocess.Popen(["/usr/games/mednafen", "-psx.dbg_level", "0", "-video.fs", "0", "-cheats", "1",
+                          "/home/pi/Downloads/NES_Roms/" + game + ".nes"])
         ti.sleep(1)
         with self.keyboard.pressed(Key.ctrl):
             with self.keyboard.pressed(Key.alt):
                 self.keyboard.press(Key.left)
                 self.keyboard.release(Key.left)
-        #self.keyboard.press('d') # Hold down speed
+        # self.keyboard.press('d') # Hold down speed
 
     def run(self):
         # with self.keyboard.pressed(Key.ctrl):
@@ -91,7 +88,7 @@ class Gesture:
 
     def draw(self):
         self.image, keypoints = self.pnet.get_image()
-        
+
         self.blit_cam_frame(self.image, self.window)
         frames = self.myfont.render(str(int(self.clock.get_fps())) + " FPS", True, pygame.Color('green'))
         self.window.blit(frames, (self.WIDTH - 100, 20))
@@ -113,22 +110,22 @@ class Gesture:
             if self.game == "Tetris":
                 self.release_keys()
             elif pygame.time.get_ticks() - self.buffer_time >= 350:
-              self.buffer_time = pygame.time.get_ticks()
-              
-              if "RUNNING LEFT" not in self.gesture:
-                  self.keyboard.release('a')
-              if "RUNNING RIGHT" not in self.gesture:
-                  self.keyboard.release('d')
-              if "RIGHT WAVE" not in self.gesture:
-                  self.keyboard.release('f')
-              if "LEFT WAVE" not in self.gesture:
-                  self.keyboard.release('g')
-              if "JUMP" not in self.gesture:
-                  self.keyboard.release('w')
-              if "CROUCH" not in self.gesture:
-                  self.keyboard.release('s')
-              if "ENTER" not in self.gesture:
-                  self.keyboard.release(Key.enter)
+                self.buffer_time = pygame.time.get_ticks()
+
+                if "RUNNING LEFT" not in self.gesture:
+                    self.keyboard.release('a')
+                if "RUNNING RIGHT" not in self.gesture:
+                    self.keyboard.release('d')
+                if "RIGHT WAVE" not in self.gesture:
+                    self.keyboard.release('f')
+                if "LEFT WAVE" not in self.gesture:
+                    self.keyboard.release('g')
+                if "JUMP" not in self.gesture:
+                    self.keyboard.release('w')
+                if "CROUCH" not in self.gesture:
+                    self.keyboard.release('s')
+                if "ENTER" not in self.gesture:
+                    self.keyboard.release(Key.enter)
 
     def release_keys(self):
         if "RUNNING LEFT" in self.gesture:
@@ -136,11 +133,11 @@ class Gesture:
         if "RUNNING RIGHT" in self.gesture:
             self.keyboard.release('d')
         if "RIGHT WAVE" in self.gesture:
-            self.keyboard.release('f')
+            self.keyboard.release('w')
         if "LEFT WAVE" in self.gesture:
             self.keyboard.release('g')
         if "JUMP" in self.gesture:
-            self.keyboard.release('w')
+            self.keyboard.release('f')
         if "CROUCH" in self.gesture:
             self.keyboard.release('s')
         if "ENTER" in self.gesture:
@@ -153,14 +150,11 @@ class Gesture:
                 r_knee = frame[16]
                 l_hip = frame[11]
                 r_hip = frame[12]
-                # print(abs(l_knee[0] - r_knee[0]))
-                # print(np.linalg.norm(l_hip - r_hip) * .3)
-                # print()
                 if abs(l_knee[0] - r_knee[0]) > np.linalg.norm(l_hip - r_hip) * 0.40:
-                    if l_knee[1] > self.WIDTH // 2:
+                    if l_knee[0] < r_knee[0]:  # Left knee is raised
                         dir = "LEFT"
                         self.keyboard.press('a')
-                    else:
+                    elif r_knee[0] < l_knee[0]:  # Right knee is raised
                         dir = "RIGHT"
                         self.keyboard.press('d')
                     run_str = "RUNNING " + dir
@@ -176,7 +170,7 @@ class Gesture:
         else:
             hand_index = 10
             elbow_index = 8
-        
+
         start_wave = False
         for frame in self.keypoints:
             hand_coords = frame[hand_index]
@@ -198,37 +192,38 @@ class Gesture:
                     self.gesture.append(hand_str)
                 print(hand_str)
                 if hand == 'right':
-                    self.keyboard.press('f')
+                    self.keyboard.press('w')
                 else:
                     self.keyboard.press('g')
 
-    # def check_jump(self):
-    #     before = self.keypoints[0]
-    #     after = self.keypoints[len(self.keypoints) - 1]
-    #
-    #     a = (np.subtract(before[:, 0], after[:, 0]) / before[:, 0]) * 100
-    #     if np.mean(a) > 20:
-    #         self.gesture = "JUMP"
-    #         self.draw_gesture = True
-    #     elif np.mean(a) < -20:
-    #         self.gesture = "CROUCH"
-    #         self.draw_gesture = True
+    # def check_crouch(self):
+    #     # Get average y position of feet
+    #     foot_pos = []
+    #     for frame in self.keypoints:
+    #         l_hip_y = frame[5][0]
+    #         r_hip_y = frame[6][0]
+    #         if l_hip_y != 0.0 and r_hip_y != 0.0:
+    #             foot_pos.append((l_hip_y + r_hip_y) / 2)
+    #     if len(foot_pos) > 2:
+    #         low_thresh = max(foot_pos) - 15
+    #         if foot_pos[-1] < low_thresh:
+    #             if "CROUCH" not in self.gesture:
+    #                 self.gesture.append("CROUCH")
+    #             print("CROUCH")
+    #             self.keyboard.press('s')
 
     def check_crouch(self):
-        # Get average y position of feet
-        foot_pos = []
         for frame in self.keypoints:
-            l_hip_y = frame[5][0]
-            r_hip_y = frame[6][0]
-            if l_hip_y != 0.0 and r_hip_y != 0.0:
-                foot_pos.append((l_hip_y + r_hip_y) / 2)
-        if len(foot_pos) > 2:
-            low_thresh = max(foot_pos) - 15
-            if foot_pos[-1] < low_thresh:
+            l_hand_y = frame[9][0]
+            r_hand_y = frame[10][0]
+            l_knee_y = frame[13][0]
+            r_knee_y = frame[14][0]
+            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_hand_y >= l_knee_y and r_hand_y >= r_knee_y:
                 if "CROUCH" not in self.gesture:
                     self.gesture.append("CROUCH")
                 print("CROUCH")
                 self.keyboard.press('s')
+                return
 
     def check_jump(self):
         for frame in self.keypoints:
@@ -240,7 +235,7 @@ class Gesture:
                 if "JUMP" not in self.gesture:
                     self.gesture.append("JUMP")
                 print("JUMP")
-                self.keyboard.press('w')
+                self.keyboard.press('f')
                 return
 
     def check_hips(self):
@@ -255,10 +250,10 @@ class Gesture:
             l_dist = np.linalg.norm(l_hip - l_wrist)
             r_dist = np.linalg.norm(r_wrist - r_hip)
             if l_dist > 60 or r_dist > 60 or \
-                angle_between(l_wrist[::-1], l_elbow[::-1]) > 70 or \
-                angle_between(r_wrist[::-1], r_elbow[::-1]) < 100:
-                    hip_pose = False
-        
+                    angle_between(l_wrist[::-1], l_elbow[::-1]) > 70 or \
+                    angle_between(r_wrist[::-1], r_elbow[::-1]) < 100:
+                hip_pose = False
+
         if hip_pose:
             if "ENTER" not in self.gesture:
                 self.gesture.append("ENTER")

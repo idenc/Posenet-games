@@ -165,6 +165,10 @@ class Gesture:
                         r_elbow[0] - r_wrist[0]) < delta:  # Check right arm
                     dir += "RIGHT"
                 if dir != "" and dir != "LEFTRIGHT":
+                    if dir == "LEFT":
+                        self.keyboard.press('a')
+                    elif dir == "RIGHT":
+                        self.keyboard.press('d')
                     run_str = "RUNNING " + dir
                     if run_str not in self.gesture:
                         self.gesture.append(run_str)
@@ -188,7 +192,7 @@ class Gesture:
                 start_wave = True
 
         # Check that hand is above elbow
-        if start_wave:
+        if start_wave and len(self.keypoints) > 2:
             num_direction_changes = 0
             for i in range(len(self.keypoints) - 3):
                 if sign(self.keypoints[i][hand_index][1] - self.keypoints[i + 1][hand_index][1]) != sign(

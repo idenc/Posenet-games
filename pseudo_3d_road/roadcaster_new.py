@@ -426,5 +426,5 @@ class RoadCaster:
 
 
 if __name__ == "__main__":
-    rc = RoadCaster()
+    rc = RoadCaster(720, 480)
     rc.run()

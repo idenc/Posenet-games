@@ -109,7 +109,7 @@ class Gesture:
             del self.keypoints[:len(self.keypoints) - 1]
             if self.game == "Tetris":
                 self.release_keys()
-            elif pygame.time.get_ticks() - self.buffer_time >= 350:
+            elif pygame.time.get_ticks() - self.buffer_time >= 400:
                 self.buffer_time = pygame.time.get_ticks()
 
                 if "RUNNING LEFT" not in self.gesture:
@@ -218,7 +218,9 @@ class Gesture:
             r_hand_y = frame[10][0]
             l_knee_y = frame[13][0]
             r_knee_y = frame[14][0]
-            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_hand_y >= l_knee_y and r_hand_y >= r_knee_y:
+            l_dist = abs(l_hand_y - l_knee_y)
+            r_dist = abs(r_hand_y - r_knee_y)
+            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_dist <= 100 and r_dist <= 100:
                 if "CROUCH" not in self.gesture:
                     self.gesture.append("CROUCH")
                 print("CROUCH")

@@ -102,8 +102,8 @@ class Gesture:
             self.gesture = []
             self.check_time = pygame.time.get_ticks()
             self.check_crouch()
-            self.check_run()
             self.check_jump()
+            self.check_run()
             self.check_wave('left')
             self.check_wave('right')
             self.check_hips()
@@ -156,18 +156,21 @@ class Gesture:
                 r_elbow = frame[8]
                 l_wrist = frame[9]
                 r_wrist = frame[10]
-                delta = np.linalg.norm(l_shoulder - r_shoulder) * 0.40
+                delta = np.linalg.norm(l_shoulder - r_shoulder)
                 dir = ""
-                # Check that shoulder, elbow, and wrist are at same height
-                if abs(l_shoulder[0] - l_elbow[0]) < delta and abs(l_elbow[0] - l_wrist[0]) < delta:  # Check left arm
+                # Check that wrist x coord is at least delta distance from shoulder x coord
+                if abs(l_shoulder[1] - l_wrist[1]) > delta:  # Check left arm
                     dir += "LEFT"
-                if abs(r_shoulder[0] - r_elbow[0]) < delta and abs(
-                        r_elbow[0] - r_wrist[0]) < delta:  # Check right arm
+                if abs(r_shoulder[1] - r_wrist[1]) > delta:  # Check right arm
                     dir += "RIGHT"
                 if dir != "" and dir != "LEFTRIGHT":
                     if dir == "LEFT":
+                        if l_wrist[0] < l_elbow[0]:
+                            self.jump()
                         self.keyboard.press('a')
                     elif dir == "RIGHT":
+                        if r_wrist[0] < r_elbow[0]:
+                            self.jump()
                         self.keyboard.press('d')
                     run_str = "RUNNING " + dir
                     if run_str not in self.gesture:
@@ -224,6 +227,12 @@ class Gesture:
                 self.keyboard.press('s')
                 return
 
+    def jump(self):
+        if "JUMP" not in self.gesture:
+            self.gesture.append("JUMP")
+        print("JUMP")
+        self.keyboard.press('f')
+
     def check_jump(self):
         for frame in self.keypoints:
             l_hand_y = frame[9][0]
@@ -231,10 +240,7 @@ class Gesture:
             l_elbow_y = frame[7][0]
             r_elbow_y = frame[8][0]
             if l_hand_y != 0.0 and r_hand_y != 0.0 and l_hand_y < l_elbow_y and r_hand_y < r_elbow_y:
-                if "JUMP" not in self.gesture:
-                    self.gesture.append("JUMP")
-                print("JUMP")
-                self.keyboard.press('f')
+                self.jump()
                 return
 
     def check_hips(self):

@@ -117,7 +117,7 @@ class Gesture:
             del self.keypoints[:len(self.keypoints) - 1]
             if self.game == "Tetris":
                 self.release_keys()
-            elif pygame.time.get_ticks() - self.buffer_time >= self.wait_length + 50:
+            elif pygame.time.get_ticks() - self.buffer_time >= self.wait_length + 10:
                 self.buffer_time = pygame.time.get_ticks()
 
                 if "RUNNING LEFT" not in self.gesture:

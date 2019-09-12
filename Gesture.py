@@ -118,7 +118,7 @@ class Gesture:
                 if "RUNNING RIGHT" not in self.gesture:
                     self.keyboard.release('d')
                 if "RIGHT WAVE" not in self.gesture:
-                    self.keyboard.release('f')
+                    self.keyboard.release('w')
                 if "LEFT WAVE" not in self.gesture:
                     self.keyboard.release('g')
                 if "CROUCH" not in self.gesture:
@@ -129,7 +129,7 @@ class Gesture:
             if pygame.time.get_ticks() - self.jump_time >= 500:
                 self.jump_time = pygame.time.get_ticks()
                 if "JUMP" not in self.gesture:
-                    self.keyboard.release('w')
+                    self.keyboard.release('f')
 
     def release_keys(self):
         if "RUNNING LEFT" in self.gesture:
@@ -157,16 +157,14 @@ class Gesture:
                 l_wrist = frame[9]
                 r_wrist = frame[10]
                 delta = np.linalg.norm(l_shoulder - r_shoulder) * 0.40
-                dir = None
+                dir = ""
                 # Check that shoulder, elbow, and wrist are at same height
                 if abs(l_shoulder[0] - l_elbow[0]) < delta and abs(l_elbow[0] - l_wrist[0]) < delta:  # Check left arm
-                    dir = "LEFT"
-                    self.keyboard.press('a')
-                elif abs(r_shoulder[0] - r_elbow[0]) < delta and abs(
+                    dir += "LEFT"
+                if abs(r_shoulder[0] - r_elbow[0]) < delta and abs(
                         r_elbow[0] - r_wrist[0]) < delta:  # Check right arm
-                    dir = "RIGHT"
-                    self.keyboard.press('d')
-                if dir is not None:
+                    dir += "RIGHT"
+                if dir != "" and dir != "LEFTRIGHT":
                     run_str = "RUNNING " + dir
                     if run_str not in self.gesture:
                         self.gesture.append(run_str)
@@ -206,22 +204,6 @@ class Gesture:
                 else:
                     self.keyboard.press('g')
 
-    # def check_crouch(self):
-    #     # Get average y position of feet
-    #     foot_pos = []
-    #     for frame in self.keypoints:
-    #         l_hip_y = frame[5][0]
-    #         r_hip_y = frame[6][0]
-    #         if l_hip_y != 0.0 and r_hip_y != 0.0:
-    #             foot_pos.append((l_hip_y + r_hip_y) / 2)
-    #     if len(foot_pos) > 2:
-    #         low_thresh = max(foot_pos) - 15
-    #         if foot_pos[-1] < low_thresh:
-    #             if "CROUCH" not in self.gesture:
-    #                 self.gesture.append("CROUCH")
-    #             print("CROUCH")
-    #             self.keyboard.press('s')
-
     def check_crouch(self):
         for frame in self.keypoints:
             l_hand_y = frame[9][0]
@@ -230,7 +212,7 @@ class Gesture:
             r_knee_y = frame[14][0]
             l_dist = abs(l_hand_y - l_knee_y)
             r_dist = abs(r_hand_y - r_knee_y)
-            delta = self.HEIGHT // 11
+            delta = self.HEIGHT // 7
             if l_hand_y != 0.0 and r_hand_y != 0.0 and l_dist <= delta and r_dist <= delta:
                 if "CROUCH" not in self.gesture:
                     self.gesture.append("CROUCH")

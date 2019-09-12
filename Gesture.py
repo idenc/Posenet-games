@@ -40,6 +40,7 @@ class Gesture:
         self.check_time = time
         self.myfont = pygame.font.SysFont("Comic Sans MS", 40)
         self.buffer_time = time
+        self.jump_time = time
         self.image = None
         self.gesture = []
         self.game = game
@@ -109,7 +110,7 @@ class Gesture:
             del self.keypoints[:len(self.keypoints) - 1]
             if self.game == "Tetris":
                 self.release_keys()
-            elif pygame.time.get_ticks() - self.buffer_time >= 400:
+            elif pygame.time.get_ticks() - self.buffer_time >= 350:
                 self.buffer_time = pygame.time.get_ticks()
 
                 if "RUNNING LEFT" not in self.gesture:
@@ -120,12 +121,15 @@ class Gesture:
                     self.keyboard.release('f')
                 if "LEFT WAVE" not in self.gesture:
                     self.keyboard.release('g')
-                if "JUMP" not in self.gesture:
-                    self.keyboard.release('w')
                 if "CROUCH" not in self.gesture:
                     self.keyboard.release('s')
                 if "ENTER" not in self.gesture:
                     self.keyboard.release(Key.enter)
+
+            if pygame.time.get_ticks() - self.jump_time >= 500:
+                self.jump_time = pygame.time.get_ticks()
+                if "JUMP" not in self.gesture:
+                    self.keyboard.release('w')
 
     def release_keys(self):
         if "RUNNING LEFT" in self.gesture:
@@ -146,17 +150,23 @@ class Gesture:
     def check_run(self):
         if not any("RUNNING" in string for string in self.gesture):
             for frame in self.keypoints:
-                l_knee = frame[13]
-                r_knee = frame[14]
-                l_hip = frame[11]
-                r_hip = frame[12]
-                if abs(l_knee[0] - r_knee[0]) > np.linalg.norm(l_hip - r_hip) * 0.40:
-                    if l_knee[0] < r_knee[0]:  # Left knee is raised
-                        dir = "LEFT"
-                        self.keyboard.press('a')
-                    elif r_knee[0] < l_knee[0]:  # Right knee is raised
-                        dir = "RIGHT"
-                        self.keyboard.press('d')
+                l_shoulder = frame[5]
+                r_shoulder = frame[6]
+                l_elbow = frame[7]
+                r_elbow = frame[8]
+                l_wrist = frame[9]
+                r_wrist = frame[10]
+                delta = np.linalg.norm(l_shoulder - r_shoulder) * 0.40
+                dir = None
+                # Check that shoulder, elbow, and wrist are at same height
+                if abs(l_shoulder[0] - l_elbow[0]) < delta and abs(l_elbow[0] - l_wrist[0]) < delta:  # Check left arm
+                    dir = "LEFT"
+                    self.keyboard.press('a')
+                elif abs(r_shoulder[0] - r_elbow[0]) < delta and abs(
+                        r_elbow[0] - r_wrist[0]) < delta:  # Check right arm
+                    dir = "RIGHT"
+                    self.keyboard.press('d')
+                if dir is not None:
                     run_str = "RUNNING " + dir
                     if run_str not in self.gesture:
                         self.gesture.append(run_str)
@@ -220,7 +230,8 @@ class Gesture:
             r_knee_y = frame[14][0]
             l_dist = abs(l_hand_y - l_knee_y)
             r_dist = abs(r_hand_y - r_knee_y)
-            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_dist <= 70 and r_dist <= 70:
+            delta = self.HEIGHT // 11
+            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_dist <= delta and r_dist <= delta:
                 if "CROUCH" not in self.gesture:
                     self.gesture.append("CROUCH")
                 print("CROUCH")

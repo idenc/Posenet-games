@@ -10,6 +10,7 @@ class PiVideoStream:
         # initialize the camera and stream
         self.camera = PiCamera()
         self.camera.vflip = True
+        self.camera.rotation = 90
         self.camera.resolution = resolution
         self.camera.framerate = framerate
         self.rawCapture = PiRGBArray(self.camera, size=resolution)

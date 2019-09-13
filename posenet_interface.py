@@ -33,7 +33,7 @@ class posenetInterface:
         # self.cap.set(4, 480)
         self.scale_factor = (257 / 480)
         # self.video = WebcamVideoStream(self.cap).start()
-        self.video = PiVideoStream(resolution=(480, 480))
+        self.video = PiVideoStream(resolution=(480, 480)).start()
 
         rtm_file = "/home/pi/Downloads/posenet/posenet_050_257.rtm"
         self.client = Context()

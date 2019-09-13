@@ -3,7 +3,7 @@ import deepviewrt as rt
 import numpy as np
 import posenet as p
 # import posenet.posenet_c.posenet as p_c
-from WebcamCapture import WebcamVideoStream
+from PiVideoCapture import PiVideoStream
 
 from deepviewrt.context import Context
 
@@ -22,17 +22,18 @@ class posenetInterface:
 
         print('DeepViewRT %s' % rt.version())
 
-        self.cap = cv2.VideoCapture(0)
-        in_width = self.cap.get(3)
-        in_height = self.cap.get(4)
-        print(in_width, in_height)
-        self.cam_width, self.cam_height = image_to_ratio(in_height, in_width)
+        # self.cap = cv2.VideoCapture(0)
+        # in_width = self.cap.get(3)
+        # in_height = self.cap.get(4)
+        # print(in_width, in_height)
+        # self.cam_width, self.cam_height = image_to_ratio(in_height, in_width)
         # self.scale_factor = (270 / self.cam_height)
         
-        self.cap.set(3, 480)
-        self.cap.set(4, 480)
+        # self.cap.set(3, 480)
+        # self.cap.set(4, 480)
         self.scale_factor = (257 / 480)
-        self.video = WebcamVideoStream(self.cap).start()
+        # self.video = WebcamVideoStream(self.cap).start()
+        self.video = PiVideoStream(resolution=(480, 480))
 
         rtm_file = "/home/pi/Downloads/posenet/posenet_050_257.rtm"
         self.client = Context()

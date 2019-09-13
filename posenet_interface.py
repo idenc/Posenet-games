@@ -1,11 +1,10 @@
 import cv2
 import deepviewrt as rt
-import numpy as np
+from deepviewrt.context import Context
+
 import posenet as p
 # import posenet.posenet_c.posenet as p_c
-from PiVideoCapture import PiVideoStream
-
-from deepviewrt.context import Context
+from WebcamCapture import WebcamVideoStream
 
 
 def image_to_ratio(h, w):
@@ -14,26 +13,25 @@ def image_to_ratio(h, w):
     else:
         w, h = 16 * (h // 9), 9 * (h // 9)
     return w, h
-    
-    
+
+
 class posenetInterface:
     def __init__(self, image_size):
         self.output_stride = 16
 
         print('DeepViewRT %s' % rt.version())
 
-        # self.cap = cv2.VideoCapture(0)
-        # in_width = self.cap.get(3)
-        # in_height = self.cap.get(4)
-        # print(in_width, in_height)
-        # self.cam_width, self.cam_height = image_to_ratio(in_height, in_width)
+        self.cap = cv2.VideoCapture(0)
+        in_width = self.cap.get(3)
+        in_height = self.cap.get(4)
+        print(in_width, in_height)
+        self.cam_width, self.cam_height = image_to_ratio(in_height, in_width)
         # self.scale_factor = (270 / self.cam_height)
-        
-        # self.cap.set(3, 480)
-        # self.cap.set(4, 480)
+
+        self.cap.set(3, 480)
+        self.cap.set(4, 480)
         self.scale_factor = (257 / 480)
-        # self.video = WebcamVideoStream(self.cap).start()
-        self.video = PiVideoStream(resolution=(480, 480)).start()
+        self.video = WebcamVideoStream(self.cap).start()
 
         rtm_file = "/home/pi/Downloads/posenet/posenet_050_257.rtm"
         self.client = Context()
@@ -43,7 +41,7 @@ class posenetInterface:
     def infer_image(self, num_people, return_overlay=False, return_input_img=False):
         input_image, display_image, output_scale = p.read_cap(
             self.video, scale_factor=self.scale_factor, output_stride=self.output_stride)
-        
+
         inputs = {'input': input_image}
         self.client.run(inputs)
 
@@ -62,7 +60,7 @@ class posenetInterface:
             min_pose_score=0.20)
         keypoint_coords *= output_scale
 
-        #for pose in keypoint_coords:
+        # for pose in keypoint_coords:
         #   pose[:, 1] += (display_image.shape[1] // 2) - (display_image.shape[0] // 2)
 
         if not return_overlay:
@@ -72,7 +70,7 @@ class posenetInterface:
         overlay_image = p.draw_skel_and_kp(
             display_image, pose_scores, keypoint_scores, keypoint_coords,
             min_pose_score=0.20, min_part_score=0.1)
-        
+
         if return_input_img:
             return cv2.cvtColor(overlay_image, cv2.COLOR_BGR2RGB), keypoint_coords[:num_people], input_image
         return cv2.cvtColor(overlay_image, cv2.COLOR_BGR2RGB), keypoint_coords[:num_people]

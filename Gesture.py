@@ -34,6 +34,7 @@ class Gesture:
             flags = pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE
             self.window = pygame.display.set_mode(flags=flags)
         pygame.display.set_caption('Posenet Gestures')
+        print(pygame.display.Info())
 
         if pnet:
             self.pnet = pnet
@@ -85,7 +86,8 @@ class Gesture:
             self.clock.tick(60)
 
     def blit_cam_frame(self, frame, screen):
-        frame = np.rot90(frame)
+        # frame = np.rot90(frame)
+        frame = frame.swapaxes(0, 1)
         frame = pygame.surfarray.make_surface(frame)
         screen.blit(pygame.transform.scale(frame, (self.WIDTH, self.HEIGHT)), (0, 0))
 

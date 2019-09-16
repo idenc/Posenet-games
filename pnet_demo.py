@@ -2,9 +2,8 @@ import argparse
 import time
 
 import cv2
+
 from posenet_interface import posenetInterface
-from deepviewrt.context import Context
-import deepviewrt as rt
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=int, default=50)
@@ -14,6 +13,7 @@ parser.add_argument('--cam_height', type=int, default=480)
 parser.add_argument('--file', type=str, default=None, help="Optionally use a video file instead of a live camera")
 args = parser.parse_args()
 
+
 def main():
     pnet = posenetInterface(257)
 
@@ -22,7 +22,7 @@ def main():
     while 1:
         infer_begin = time.time()
         overlay_image, _ = pnet.get_image(3)
-        
+
         infer_time = time.time() - infer_begin
         print("Draw time: " + str(infer_time))
         fps = 1.0 / infer_time
@@ -36,6 +36,7 @@ def main():
             break
 
     print('Average FPS: ', total_frames / (time.time() - time_begin))
+
 
 if __name__ == "__main__":
     main()

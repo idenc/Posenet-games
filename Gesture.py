@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import posenet_interface
 import pygame
@@ -18,10 +19,13 @@ class Gesture:
     def __init__(self, game, width=None, height=None, pnet=None):
         pygame.init()
         self.clock = pygame.time.Clock()
-        if len(sys.argv) > 1:
-            self.wait_length = int(sys.argv[1])
-        else:
-            self.wait_length = 300
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--fullscreen_emu', dest='fullscreen_emu', action='store_true')
+        parser.add_argument('--wait_length', type=int)
+        parser.set_defaults(fullscreen_emu=False)
+        args = parser.parse_args()
+
+        self.fullscreen_emu = args.fullscreen_emu
 
         if width and height:
             self.WIDTH = width
@@ -54,7 +58,8 @@ class Gesture:
         self.start = True
 
         subprocess.Popen(
-            ["/usr/games/mednafen", "-psx.dbg_level", "0", "-sftoggle", "1", "-video.fs", "0", "-cheats", "1",
+            ["/usr/games/mednafen", "-psx.dbg_level", "0", "-sftoggle", "1",
+             "-video.fs", "1" if self.fullscreen_emu else "0", "-cheats", "1",
              "/home/pi/Downloads/NES_Roms/" + game + ".nes"])
         ti.sleep(1)
         with self.keyboard.pressed(Key.ctrl):
@@ -98,11 +103,12 @@ class Gesture:
     def draw(self):
         self.image, keypoints = self.pnet.get_image()
 
-        self.blit_cam_frame(self.image, self.window)
-        frames = self.myfont.render(str(int(self.clock.get_fps())) + " FPS", True, pygame.Color('green'))
-        self.window.blit(frames, (self.WIDTH - 100, 20))
-        if len(self.gesture) > 0:
-            self.show_gesture(self.gesture)
+        if not self.fullscreen_emu:
+            self.blit_cam_frame(self.image, self.window)
+            frames = self.myfont.render(str(int(self.clock.get_fps())) + " FPS", True, pygame.Color('green'))
+            self.window.blit(frames, (self.WIDTH - 100, 20))
+            if len(self.gesture) > 0:
+                self.show_gesture(self.gesture)
 
         self.keypoints.append(keypoints[0])
 

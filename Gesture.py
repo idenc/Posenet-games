@@ -21,7 +21,7 @@ class Gesture:
         self.clock = pygame.time.Clock()
         parser = argparse.ArgumentParser()
         parser.add_argument('--fullscreen_emu', dest='fullscreen_emu', action='store_true')
-        parser.add_argument('--wait_length', type=int)
+        parser.add_argument('--wait_length', type=int, default=300)
         parser.set_defaults(fullscreen_emu=False)
         args = parser.parse_args()
 

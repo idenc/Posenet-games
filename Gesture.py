@@ -26,6 +26,7 @@ class Gesture:
         args = parser.parse_args()
 
         self.fullscreen_emu = args.fullscreen_emu
+        self.wait_length = args.wait_length
 
         if width and height:
             self.WIDTH = width

@@ -3,6 +3,7 @@ import numpy as np
 import math
 
 import posenet.constants
+# import posenet.posenet_c.posenet as p_c
 
 
 def valid_resolution(width, height, output_stride=16):
@@ -18,9 +19,9 @@ def _process_input(source_img, scale_factor=1.0, output_stride=16):
     scale = np.array([source_img.shape[0] / target_height, source_img.shape[1] / target_width])
 
     # left = (source_img.shape[1] // 2) - (source_img.shape[0] // 2)
-    #right = (source_img.shape[1] // 2) + (source_img.shape[0] // 2)
-    #input_img = source_img[:, left:right]
-    #target_width = target_height
+    # right = (source_img.shape[1] // 2) + (source_img.shape[0] // 2)
+    # input_img = source_img[:, left:right]
+    # target_width = target_height
     input_img = cv2.resize(source_img, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
     input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB).astype(np.float32)
     input_img = input_img * (2.0 / 255.0) - 1.0
@@ -30,8 +31,8 @@ def _process_input(source_img, scale_factor=1.0, output_stride=16):
 
 def read_cap(cap, scale_factor=1.0, output_stride=16):
     img = cap.read()
-    #if not res:
-    #   raise IOError("webcam failure")
+    if img is None:
+      raise IOError("webcam failure")
     return _process_input(img, scale_factor, output_stride)
 
 

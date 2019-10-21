@@ -9,6 +9,7 @@ import time as ti
 from pygame import *
 from pynput.keyboard import Key, Controller
 from posenet.utils import angle_between
+import pyosd
 
 
 def sign(x):
@@ -27,7 +28,7 @@ class Gesture:
 
         self.fullscreen_emu = args.fullscreen_emu
         self.wait_length = args.wait_length
-
+        
         if width and height:
             self.WIDTH = width
             self.HEIGHT = height
@@ -58,6 +59,11 @@ class Gesture:
         self.keyboard = Controller()
         self.start = True
 
+        if self.fullscreen_emu:
+            self.osd = pyosd.osd(pos=pyosd.POS_BOT,
+                                 offset=0,
+                                 timeout=1)
+
         subprocess.Popen(
             ["/usr/games/mednafen", "-psx.dbg_level", "0", "-sftoggle", "1",
              "-video.fs", "1" if self.fullscreen_emu else "0", "-cheats", "1",
@@ -67,6 +73,8 @@ class Gesture:
             with self.keyboard.pressed(Key.alt):
                 self.keyboard.press(Key.left)
                 self.keyboard.release(Key.left)
+        self.keyboard.press('\\')
+        self.keyboard.release('\\')
         # self.keyboard.press('d') # Hold down speed
 
     def run(self):
@@ -87,12 +95,11 @@ class Gesture:
                         return
                     elif event.key == K_TAB:
                         self.start = True
-
             pygame.display.update()
             self.clock.tick(60)
 
     def blit_cam_frame(self, frame, screen):
-        # frame = np.rot90(frame)
+        # frame = np.fliplr(frame)
         frame = frame.swapaxes(0, 1)
         frame = pygame.surfarray.make_surface(frame)
         screen.blit(pygame.transform.scale(frame, (self.WIDTH, self.HEIGHT)), (0, 0))
@@ -191,7 +198,11 @@ class Gesture:
                     run_str = "RUNNING " + dir
                     if run_str not in self.gesture:
                         self.gesture.append(run_str)
-                    print(run_str)
+                        if self.fullscreen_emu:
+                            line = 0
+                            if len(self.gesture) > 1:
+                                line = 1
+                            self.osd.display(run_str, line=line)
                     return
 
     def check_wave(self, hand):
@@ -221,7 +232,6 @@ class Gesture:
                 hand_str = hand.upper() + " WAVE"
                 if hand_str not in self.gesture:
                     self.gesture.append(hand_str)
-                print(hand_str)
                 if hand == 'right':
                     self.keyboard.press('w')
                 else:
@@ -235,18 +245,26 @@ class Gesture:
             r_knee_y = frame[14][0]
             l_dist = abs(l_hand_y - l_knee_y)
             r_dist = abs(r_hand_y - r_knee_y)
-            delta = self.HEIGHT // 7
+            delta = self.HEIGHT // 6
             if l_hand_y != 0.0 and r_hand_y != 0.0 and l_dist <= delta and r_dist <= delta:
                 if "CROUCH" not in self.gesture:
                     self.gesture.append("CROUCH")
-                print("CROUCH")
+                    if self.fullscreen_emu:
+                        line = 0
+                        if len(self.gesture) > 1:
+                            line = 1
+                        self.osd.display("CROUCH", line=line)
                 self.keyboard.press('s')
                 return
 
     def jump(self):
         if "JUMP" not in self.gesture:
             self.gesture.append("JUMP")
-        print("JUMP")
+            if self.fullscreen_emu:
+                line = 0
+                if len(self.gesture) > 1:
+                    line = 1
+                self.osd.display("JUMP", line=line)
         self.keyboard.press('f')
 
     def check_jump(self):
@@ -269,9 +287,10 @@ class Gesture:
             r_hip = frame[12]
             l_elbow = frame[7]
             r_elbow = frame[8]
+            delta = np.linalg.norm(l_hip - r_hip)
             l_dist = np.linalg.norm(l_hip - l_wrist)
             r_dist = np.linalg.norm(r_wrist - r_hip)
-            if l_dist > 60 or r_dist > 60 or \
+            if l_dist > delta or r_dist > delta or \
                     angle_between(l_wrist[::-1], l_elbow[::-1]) > 70 or \
                     angle_between(r_wrist[::-1], r_elbow[::-1]) < 100:
                 hip_pose = False
@@ -279,7 +298,11 @@ class Gesture:
         if hip_pose:
             if "ENTER" not in self.gesture:
                 self.gesture.append("ENTER")
-            print("ENTER")
+                if self.fullscreen_emu:
+                    line = 0
+                    if len(self.gesture) > 1:
+                        line = 1
+                    self.osd.display("ENTER", line=line)
             self.keyboard.press(Key.enter)
 
     def show_gesture(self, gesture):
@@ -291,5 +314,5 @@ class Gesture:
 
 
 if __name__ == "__main__":
-    g = Gesture('SMB', 480, 480)
+    g = Gesture('SMB', 320, 320)
     g.run()

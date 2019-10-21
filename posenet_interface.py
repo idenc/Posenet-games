@@ -33,7 +33,7 @@ class posenetInterface:
         self.scale_factor = (257 / 480)
         self.video = WebcamVideoStream(self.cap).start()
 
-        rtm_file = "/home/pi/Downloads/posenet/posenet_050_257.rtm"
+        rtm_file = "/home/pi/Downloads/posenet_050_257.rtm"
         self.client = Context()
         in_file = open(rtm_file, 'rb')
         self.client.load(in_file.read())

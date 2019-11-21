@@ -33,7 +33,7 @@ class posenetInterface:
         self.scale_factor = (257 / 480)
         self.video = WebcamVideoStream(self.cap).start()
 
-        rtm_file = "/home/pi/Downloads/posenet_050_257.rtm"
+        rtm_file = "posenet_050_257.rtm"
         self.client = Context()
         in_file = open(rtm_file, 'rb')
         self.client.load(in_file.read())
@@ -45,10 +45,10 @@ class posenetInterface:
         inputs = {'input': input_image}
         self.client.run(inputs)
 
-        heatmaps_result = self.client.tensor('output1').map()
-        offsets_result = self.client.tensor('output2').map()
-        displacement_fwd_result = self.client.tensor('output3').map()
-        displacement_bwd_result = self.client.tensor('output4').map()
+        heatmaps_result = self.client.tensor('heatmap').map()
+        offsets_result = self.client.tensor('offset_2').map()
+        displacement_fwd_result = self.client.tensor('displacement_fwd_2').map()
+        displacement_bwd_result = self.client.tensor('displacement_bwd_2').map()
 
         pose_scores, keypoint_scores, keypoint_coords = p.decode_multiple_poses(
             heatmaps_result.squeeze(axis=0),

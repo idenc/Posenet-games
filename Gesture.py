@@ -118,12 +118,14 @@ class Gesture:
 
         self.keypoints.append(keypoints[0])
 
-        # if pygame.time.get_ticks() - self.check_time >= self.wait_length:
         if len(self.keypoints) > 0:
             self.gesture = []
             self.check_time = pygame.time.get_ticks()
-            check_run(self)
-            check_jump(self)
+            if "RUNNING RIGHT" not in self.gesture and check_run(self.keypoints):
+                self.gesture.append("RUNNING RIGHT")
+                self.keyboard.press('d')
+            if "JUMP" not in self.gesture and check_jump(self.keypoints):
+                self.keyboard.press('f')
             # self.check_crouch()
             # self.check_jump()
             # self.check_run()
@@ -131,43 +133,28 @@ class Gesture:
             # self.check_wave('right')
             # self.check_hips()
             del self.keypoints[:len(self.keypoints) - 1]
-            if self.game == "Tetris":
-                self.release_keys()
-            elif pygame.time.get_ticks() - self.buffer_time >= self.wait_length + 10:
+            if pygame.time.get_ticks() - self.buffer_time >= self.wait_length + 10:
                 self.buffer_time = pygame.time.get_ticks()
-
-                if "RUNNING LEFT" not in self.gesture:
-                    self.keyboard.release('a')
-                if "RUNNING RIGHT" not in self.gesture:
-                    self.keyboard.release('d')
-                if "RIGHT WAVE" not in self.gesture:
-                    self.keyboard.release('w')
-                if "LEFT WAVE" not in self.gesture:
-                    self.keyboard.release('g')
-                if "CROUCH" not in self.gesture:
-                    self.keyboard.release('s')
-                if "ENTER" not in self.gesture:
-                    self.keyboard.release(Key.enter)
-
+                self.release_keys()
             if pygame.time.get_ticks() - self.jump_time >= self.wait_length + 200:
                 self.jump_time = pygame.time.get_ticks()
                 if "JUMP" not in self.gesture:
                     self.keyboard.release('f')
 
     def release_keys(self):
-        if "RUNNING LEFT" in self.gesture:
+        if "RUNNING LEFT" not in self.gesture:
             self.keyboard.release('a')
-        if "RUNNING RIGHT" in self.gesture:
+        if "RUNNING RIGHT" not in self.gesture:
             self.keyboard.release('d')
-        if "RIGHT WAVE" in self.gesture:
+        if "RIGHT WAVE" not in self.gesture:
             self.keyboard.release('w')
-        if "LEFT WAVE" in self.gesture:
+        if "LEFT WAVE" not in self.gesture:
             self.keyboard.release('g')
-        if "JUMP" in self.gesture:
+        if "JUMP" not in self.gesture:
             self.keyboard.release('f')
-        if "CROUCH" in self.gesture:
+        if "CROUCH" not in self.gesture:
             self.keyboard.release('s')
-        if "ENTER" in self.gesture:
+        if "ENTER" not in self.gesture:
             self.keyboard.release(Key.enter)
 
     def check_run(self):
@@ -306,5 +293,5 @@ class Gesture:
 
 
 if __name__ == "__main__":
-    g = Gesture('SMB', 320, 320)
+    g = Gesture('SMB', 480, 480)
     g.run()

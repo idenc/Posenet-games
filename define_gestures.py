@@ -1,53 +1,90 @@
 import numpy as np
+from enum import IntEnum
+
+
+class Keypoints(IntEnum):
+    """
+    This class defines the indices for each body part's keypoint
+    Usage: left_hand = keypoint[Keypoints.LEFT_HAND]
+    and left_hand is a list with 2 element [LEFT_HAND_Y, LEFT_HAND_X]
+
+    ~Note~
+    (0, 0) is at the top left corner of the window and x increases to the right, but
+    y increases as you move down instead of the usual increase as y goes up.
+    """
+    NOSE = 0
+
+    LEFT_EYE = 1
+    RIGHT_EYE = 2
+
+    LEFT_EAR = 3
+    RIGHT_EAR = 4
+
+    LEFT_SHOULDER = 5
+    RIGHT_SHOULDER = 6
+
+    LEFT_ELBOW = 7
+    RIGHT_ELBOW = 8
+
+    LEFT_WRIST = 9
+    RIGHT_WRIST = 10
+
+    LEFT_HIP = 11
+    RIGHT_HIP = 12
+
+    LEFT_KNEE = 13
+    RIGHT_KNEE = 14
+
+    LEFT_ANKLE = 15
+    RIGHT_ANKLE = 16
 
 
 def euclidean_distance(p1, p2):
+    """
+    Helper function to find the distance between two points
+    """
     return np.linalg.norm(p1 - p2)
 
 
-def check_jump(state):
-    if not any("RUNNING" in string for string in state.gesture):
-        for frame in state.keypoints:
-            l_hand_y = frame[9][0]
-            r_hand_y = frame[10][0]
-            l_elbow_y = frame[7][0]
-            r_elbow_y = frame[8][0]
-            print(l_hand_y)
-            print(r_hand_y)
-            print()
-            if l_hand_y != 0.0 and r_hand_y != 0.0 and l_hand_y < l_elbow_y and r_hand_y < r_elbow_y:
-                if "JUMP" not in state.gesture:
-                    state.gesture.append("JUMP")
-                state.keyboard.press('f')
-                return
+def check_jump(frames):
+    """
+    state.keypoints contains the keypoints that were detected
+    by the posenet model for each frame since the last gesture checks.
+    Thus, you should loop through the frames and check for any gestures.
+    :param state: Driver object containing the game state
+    :return: True if gesture is detected, else false
+    """
+    for keypoints in frames:
+        l_wrist_y = keypoints[Keypoints.LEFT_WRIST][0]
+        r_wrist_y = keypoints[Keypoints.RIGHT_WRIST][0]
+        l_elbow_y = keypoints[Keypoints.LEFT_ELBOW][0]
+        r_elbow_y = keypoints[Keypoints.RIGHT_ELBOW][0]
+        # If our wrists are detected and above the elbow then jump
+        if l_wrist_y != 0.0 and l_wrist_y < l_elbow_y:
+            return True
+        elif r_wrist_y != 0.0 and r_wrist_y < r_elbow_y:
+            return True
+
+    return False  # No detection
 
 
-def check_run(state):
-    if not any("RUNNING" in string for string in state.gesture) and "JUMP" not in state.gesture:
-        for frame in state.keypoints:
-            l_shoulder = frame[5]
-            r_shoulder = frame[6]
-            l_elbow = frame[7]
-            r_elbow = frame[8]
-            l_wrist = frame[9]
-            r_wrist = frame[10]
-            delta = euclidean_distance(l_shoulder, r_shoulder) * 0.5
-            dir = ""
-            # Check that wrist x coord is at least delta distance from shoulder x coord
-            if abs(l_shoulder[1] - l_wrist[1]) > delta:  # Check left arm
-                dir += "LEFT"
-            if abs(r_shoulder[1] - r_wrist[1]) > delta:  # Check right arm
-                dir += "RIGHT"
-            if dir != "" and dir != "LEFTRIGHT":
-                if dir == "LEFT":
-                    if l_wrist[0] < l_elbow[0]:
-                        state.jump()
-                    state.keyboard.press('a')
-                elif dir == "RIGHT":
-                    if r_wrist[0] < r_elbow[0]:
-                        state.jump()
-                    state.keyboard.press('d')
-                run_str = "RUNNING " + dir
-                if run_str not in state.gesture:
-                    state.gesture.append(run_str)
-                return
+def check_run(frames):
+    """
+    state.keypoints contains the keypoints that were detected
+    by the posenet model for each frame since the last gesture checks.
+    Thus, you should loop through the frames and check for any gestures.
+    :param state: Driver object containing the game state
+    :return: True if gesture is detected, else false
+    """
+    for keypoints in frames:
+        l_shoulder = keypoints[Keypoints.LEFT_SHOULDER]
+        r_shoulder = keypoints[Keypoints.RIGHT_SHOULDER]
+        r_wrist = keypoints[Keypoints.RIGHT_WRIST]
+
+        # Define our minimum delta to be half the distance between the person's shoulders
+        delta = euclidean_distance(l_shoulder, r_shoulder) * 0.5
+        # Check right wrist's distance on the x-axis from the right shoulder
+        if abs(r_shoulder[1] - r_wrist[1]) > delta:
+            return True
+
+    return False  # No detection

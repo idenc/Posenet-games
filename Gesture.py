@@ -12,6 +12,8 @@ from pynput.keyboard import Key, Controller
 import posenet_interface
 from posenet.utils import angle_between
 
+from define_gestures import check_jump, check_run
+
 
 def sign(x):
     return 1 - (x <= 0)
@@ -120,12 +122,14 @@ class Gesture:
         if len(self.keypoints) > 0:
             self.gesture = []
             self.check_time = pygame.time.get_ticks()
-            self.check_crouch()
-            self.check_jump()
-            self.check_run()
-            self.check_wave('left')
-            self.check_wave('right')
-            self.check_hips()
+            check_run(self)
+            check_jump(self)
+            # self.check_crouch()
+            # self.check_jump()
+            # self.check_run()
+            # self.check_wave('left')
+            # self.check_wave('right')
+            # self.check_hips()
             del self.keypoints[:len(self.keypoints) - 1]
             if self.game == "Tetris":
                 self.release_keys()
@@ -254,10 +258,6 @@ class Gesture:
     def jump(self):
         if "JUMP" not in self.gesture:
             self.gesture.append("JUMP")
-            if self.fullscreen_emu:
-                line = 0
-                if len(self.gesture) > 1:
-                    line = 1
         self.keyboard.press('f')
 
     def check_jump(self):

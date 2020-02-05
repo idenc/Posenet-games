@@ -1,15 +1,16 @@
 import argparse
-import numpy as np
-import posenet_interface
-import pygame
+import pathlib
+import os
 import subprocess
-import sys
 import time as ti
 
+import numpy as np
+import pygame
 from pygame import *
 from pynput.keyboard import Key, Controller
+
+import posenet_interface
 from posenet.utils import angle_between
-import pyosd
 
 
 def sign(x):
@@ -28,7 +29,7 @@ class Gesture:
 
         self.fullscreen_emu = args.fullscreen_emu
         self.wait_length = args.wait_length
-        
+
         if width and height:
             self.WIDTH = width
             self.HEIGHT = height
@@ -58,16 +59,12 @@ class Gesture:
         self.game = game
         self.keyboard = Controller()
         self.start = True
-
-        if self.fullscreen_emu:
-            self.osd = pyosd.osd(pos=pyosd.POS_BOT,
-                                 offset=0,
-                                 timeout=1)
+        game_path = os.path.join(pathlib.Path(__file__).parent.absolute(), game) + ".nes"
+        print(game_path)
 
         subprocess.Popen(
-            ["/usr/games/mednafen", "-psx.dbg_level", "0", "-sftoggle", "1",
-             "-video.fs", "1" if self.fullscreen_emu else "0", "-cheats", "1",
-             "/home/pi/Downloads/NES_Roms/" + game + ".nes"])
+            ["mednafen", "-psx.dbg_level", "0", "-sftoggle", "1",
+             "-video.fs", "1" if self.fullscreen_emu else "0", "-cheats", "1", game_path])
         ti.sleep(1)
         with self.keyboard.pressed(Key.ctrl):
             with self.keyboard.pressed(Key.alt):
@@ -99,7 +96,6 @@ class Gesture:
             self.clock.tick(60)
 
     def blit_cam_frame(self, frame, screen):
-        # frame = np.fliplr(frame)
         frame = frame.swapaxes(0, 1)
         frame = pygame.surfarray.make_surface(frame)
         screen.blit(pygame.transform.scale(frame, (self.WIDTH, self.HEIGHT)), (0, 0))
@@ -120,7 +116,7 @@ class Gesture:
 
         self.keypoints.append(keypoints[0])
 
-        #if pygame.time.get_ticks() - self.check_time >= self.wait_length:
+        # if pygame.time.get_ticks() - self.check_time >= self.wait_length:
         if len(self.keypoints) > 0:
             self.gesture = []
             self.check_time = pygame.time.get_ticks()
@@ -202,7 +198,6 @@ class Gesture:
                             line = 0
                             if len(self.gesture) > 1:
                                 line = 1
-                            self.osd.display(run_str, line=line)
                     return
 
     def check_wave(self, hand):
@@ -253,7 +248,6 @@ class Gesture:
                         line = 0
                         if len(self.gesture) > 1:
                             line = 1
-                        self.osd.display("CROUCH", line=line)
                 self.keyboard.press('s')
                 return
 
@@ -264,7 +258,6 @@ class Gesture:
                 line = 0
                 if len(self.gesture) > 1:
                     line = 1
-                self.osd.display("JUMP", line=line)
         self.keyboard.press('f')
 
     def check_jump(self):
@@ -302,7 +295,6 @@ class Gesture:
                     line = 0
                     if len(self.gesture) > 1:
                         line = 1
-                    self.osd.display("ENTER", line=line)
             self.keyboard.press(Key.enter)
 
     def show_gesture(self, gesture):

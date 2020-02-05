@@ -3,7 +3,6 @@ import deepviewrt as rt
 from deepviewrt.context import Context
 
 import posenet as p
-# import posenet.posenet_c.posenet as p_c
 from WebcamCapture import WebcamVideoStream
 
 
@@ -38,11 +37,13 @@ class posenetInterface:
         in_file = open(rtm_file, 'rb')
         self.client.load(in_file.read())
 
+        self.input_names = self.client.input_names()
+
     def infer_image(self, num_people, return_overlay=False, return_input_img=False):
         input_image, display_image, output_scale = p.read_cap(
             self.video, scale_factor=self.scale_factor, output_stride=self.output_stride)
 
-        inputs = {'input': input_image}
+        inputs = {self.input_names[0]: input_image}
         self.client.run(inputs)
 
         heatmaps_result = self.client.tensor('heatmap').map()

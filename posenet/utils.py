@@ -1,9 +1,9 @@
-import cv2
-import numpy as np
 import math
 
+import cv2
+import numpy as np
+
 import posenet.constants
-# import posenet.posenet_c.posenet as p_c
 
 
 def valid_resolution(width, height, output_stride=16):
@@ -13,15 +13,11 @@ def valid_resolution(width, height, output_stride=16):
 
 
 def _process_input(source_img, scale_factor=1.0, output_stride=16):
-    # source_img = cv2.flip(source_img, -1)
     target_width, target_height = valid_resolution(
         source_img.shape[1] * scale_factor, source_img.shape[0] * scale_factor, output_stride=output_stride)
     scale = np.array([source_img.shape[0] / target_height, source_img.shape[1] / target_width])
 
-    # left = (source_img.shape[1] // 2) - (source_img.shape[0] // 2)
-    # right = (source_img.shape[1] // 2) + (source_img.shape[0] // 2)
-    # input_img = source_img[:, left:right]
-    # target_width = target_height
+    target_width = target_height
     input_img = cv2.resize(source_img, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
     input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB).astype(np.float32)
     input_img = input_img * (2.0 / 255.0) - 1.0
@@ -31,8 +27,11 @@ def _process_input(source_img, scale_factor=1.0, output_stride=16):
 
 def read_cap(cap, scale_factor=1.0, output_stride=16):
     img = cap.read()
+    left = (img.shape[1] // 2) - (img.shape[0] // 2)
+    right = (img.shape[1] // 2) + (img.shape[0] // 2)
+    img = img[:, left:right]
     if img is None:
-      raise IOError("webcam failure")
+        raise IOError("webcam failure")
     return _process_input(img, scale_factor, output_stride)
 
 
@@ -80,8 +79,8 @@ def draw_skeleton(
         adjacent_keypoints.extend(new_keypoints)
     out_img = cv2.polylines(out_img, adjacent_keypoints, isClosed=False, color=(255, 255, 0))
     return out_img
-   
-    
+
+
 def angle_between(p1, p2):
     delta_x = p2[0] - p1[0]
     delta_y = p1[1] - p2[1]
@@ -115,7 +114,8 @@ def rotate_image(mat, angle):
     # rotate image with the new bounds and translated rotation matrix
     rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h))
     return rotated_mat
-    
+
+
 def overlay_image_alpha(img, img_overlay, pos, angle):
     """Overlay img_overlay on top of img at the position specified by
     pos and blend using alpha_mask.
@@ -307,8 +307,8 @@ def draw_skel_and_kp(
             if ks < min_part_score:
                 continue
             cv_keypoints.append(cv2.KeyPoint(kc[1], kc[0], 10. * ks))
-    
-    #out_img = map_image(keypoint_coords[0], out_img)
+
+    # out_img = map_image(keypoint_coords[0], out_img)
     out_img = cv2.drawKeypoints(
         out_img, cv_keypoints, outImage=np.array([]), color=(0, 255, 255),
         flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)

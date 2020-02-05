@@ -12,7 +12,7 @@ from pynput.keyboard import Key, Controller
 import posenet_interface
 from posenet.utils import angle_between
 
-from define_gestures import check_jump, check_run
+from define_gestures import check_jump, check_run, Keypoints, euclidean_distance
 
 
 def sign(x):
@@ -68,19 +68,11 @@ class Gesture:
             ["mednafen", "-psx.dbg_level", "0", "-sftoggle", "1",
              "-video.fs", "1" if self.fullscreen_emu else "0", "-cheats", "1", game_path])
         ti.sleep(1)
-        # with self.keyboard.pressed(Key.ctrl):
-        #    with self.keyboard.pressed(Key.alt):
-        #        self.keyboard.press(Key.left)
-        #        self.keyboard.release(Key.left)
+
         self.keyboard.press('\\')
         self.keyboard.release('\\')
-        # self.keyboard.press('d') # Hold down speed
 
     def run(self):
-        # with self.keyboard.pressed(Key.ctrl):
-        #     with self.keyboard.pressed(Key.alt):
-        #         self.keyboard.press(Key.right)
-        #         self.keyboard.release(Key.right)
         while 1:
             if self.start:
                 self.draw()
@@ -156,39 +148,27 @@ class Gesture:
         if "ENTER" not in self.gesture:
             self.keyboard.release(Key.enter)
 
-    def check_run(self):
-        if not any("RUNNING" in string for string in self.gesture) and "JUMP" not in self.gesture:
-            for frame in self.keypoints:
-                l_shoulder = frame[5]
-                r_shoulder = frame[6]
-                l_elbow = frame[7]
-                r_elbow = frame[8]
-                l_wrist = frame[9]
-                r_wrist = frame[10]
-                delta = np.linalg.norm(l_shoulder - r_shoulder) * 0.5
-                dir = ""
-                # Check that wrist x coord is at least delta distance from shoulder x coord
-                if abs(l_shoulder[1] - l_wrist[1]) > delta:  # Check left arm
-                    dir += "LEFT"
-                if abs(r_shoulder[1] - r_wrist[1]) > delta:  # Check right arm
-                    dir += "RIGHT"
-                if dir != "" and dir != "LEFTRIGHT":
-                    if dir == "LEFT":
-                        if l_wrist[0] < l_elbow[0]:
-                            self.jump()
-                        self.keyboard.press('a')
-                    elif dir == "RIGHT":
-                        if r_wrist[0] < r_elbow[0]:
-                            self.jump()
-                        self.keyboard.press('d')
-                    run_str = "RUNNING " + dir
-                    if run_str not in self.gesture:
-                        self.gesture.append(run_str)
-                        if self.fullscreen_emu:
-                            line = 0
-                            if len(self.gesture) > 1:
-                                line = 1
-                    return
+    def check_run(self, frames):
+        """
+        frames contains the keypoints that were detected
+        by the posenet model for each frame since the last gesture checks.
+        Thus, you should loop through the frames and check for any gestures.
+        :param frames: List of keypoints detected for each frame since
+                       last time this function was called
+        :return: True if gesture is detected, else false
+        """
+        for keypoints in frames:
+            l_shoulder = keypoints[Keypoints.LEFT_SHOULDER]
+            r_shoulder = keypoints[Keypoints.RIGHT_SHOULDER]
+            r_wrist = keypoints[Keypoints.RIGHT_WRIST]
+
+            # Define our minimum delta to be half the distance between the person's shoulders
+            delta = euclidean_distance(l_shoulder, r_shoulder) * 0.7
+            # Check right wrist's distance on the x-axis from the right shoulder
+            if abs(r_shoulder[1] - r_wrist[1]) > delta:
+                return True
+
+        return False  # No detection
 
     def check_wave(self, hand):
         if hand == 'left':
@@ -246,16 +226,27 @@ class Gesture:
             self.gesture.append("JUMP")
         self.keyboard.press('f')
 
-    def check_jump(self):
-        if not any("RUNNING" in string for string in self.gesture):
-            for frame in self.keypoints:
-                l_hand_y = frame[9][0]
-                r_hand_y = frame[10][0]
-                l_elbow_y = frame[7][0]
-                r_elbow_y = frame[8][0]
-                if l_hand_y != 0.0 and r_hand_y != 0.0 and l_hand_y < l_elbow_y and r_hand_y < r_elbow_y:
-                    self.jump()
-                    return
+    def check_jump(self, frames):
+        """
+        frames contains the keypoints that were detected
+        by the posenet model for each frame since the last gesture checks.
+        Thus, you should loop through the frames and check for any gestures.
+        :param frames: List of keypoints detected for each frame since
+                       last time this function was called
+        :return: True if gesture is detected, else false
+        """
+        for keypoints in frames:
+            l_wrist_y = keypoints[Keypoints.LEFT_WRIST][0]
+            r_wrist_y = keypoints[Keypoints.RIGHT_WRIST][0]
+            l_elbow_y = keypoints[Keypoints.LEFT_ELBOW][0]
+            r_elbow_y = keypoints[Keypoints.RIGHT_ELBOW][0]
+            # If our wrists are detected and above the elbow then jump
+            if l_wrist_y != 0.0 and l_wrist_y < l_elbow_y:
+                return True
+            if r_wrist_y != 0.0 and r_wrist_y < r_elbow_y:
+                return True
+
+        return False  # No detection
 
     def check_hips(self):
         hip_pose = True

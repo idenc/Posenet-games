@@ -48,43 +48,25 @@ def euclidean_distance(p1, p2):
 
 def check_jump(frames):
     """
-    state.keypoints contains the keypoints that were detected
+    frames contains the keypoints that were detected
     by the posenet model for each frame since the last gesture checks.
     Thus, you should loop through the frames and check for any gestures.
-    :param state: Driver object containing the game state
+    :param frames: List of keypoints detected for each frame since
+                   last time this function was called
     :return: True if gesture is detected, else false
     """
     for keypoints in frames:
-        l_wrist_y = keypoints[Keypoints.LEFT_WRIST][0]
-        r_wrist_y = keypoints[Keypoints.RIGHT_WRIST][0]
-        l_elbow_y = keypoints[Keypoints.LEFT_ELBOW][0]
-        r_elbow_y = keypoints[Keypoints.RIGHT_ELBOW][0]
-        # If our wrists are detected and above the elbow then jump
-        if l_wrist_y != 0.0 and l_wrist_y < l_elbow_y:
-            return True
-        if r_wrist_y != 0.0 and r_wrist_y < r_elbow_y:
-            return True
-
-    return False  # No detection
+        return
 
 
 def check_run(frames):
     """
-    state.keypoints contains the keypoints that were detected
+    frames contains the keypoints that were detected
     by the posenet model for each frame since the last gesture checks.
     Thus, you should loop through the frames and check for any gestures.
-    :param state: Driver object containing the game state
+    :param frames: List of keypoints detected for each frame since
+                   last time this function was called
     :return: True if gesture is detected, else false
     """
     for keypoints in frames:
-        l_shoulder = keypoints[Keypoints.LEFT_SHOULDER]
-        r_shoulder = keypoints[Keypoints.RIGHT_SHOULDER]
-        r_wrist = keypoints[Keypoints.RIGHT_WRIST]
-
-        # Define our minimum delta to be half the distance between the person's shoulders
-        delta = euclidean_distance(l_shoulder, r_shoulder) * 0.7
-        # Check right wrist's distance on the x-axis from the right shoulder
-        if abs(r_shoulder[1] - r_wrist[1]) > delta:
-            return True
-
-    return False  # No detection
+        return

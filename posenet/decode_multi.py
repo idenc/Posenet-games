@@ -1,7 +1,6 @@
 from posenet.decode import *
 from posenet.constants import *
-import time
-import scipy.ndimage as ndi
+import cv2
 
 
 def within_nms_radius(poses, squared_nms_radius, point, keypoint_id):
@@ -88,7 +87,7 @@ def build_part_with_score_fast(score_threshold, local_max_radius, scores):
     for keypoint_id in range(num_keypoints):
         kp_scores = scores[:, :, keypoint_id].copy()
         kp_scores[kp_scores < score_threshold] = 0.
-        max_vals = ndi.maximum_filter(kp_scores, size=lmd, mode='constant')
+        max_vals = cv2.dilate(kp_scores, np.ones((lmd, lmd), np.uint8))
         max_loc = np.logical_and(kp_scores == max_vals, kp_scores > 0)
         max_loc_idx = max_loc.nonzero()
         for y, x in zip(*max_loc_idx):

@@ -68,10 +68,10 @@ class Gesture:
             ["mednafen", "-psx.dbg_level", "0", "-sftoggle", "1",
              "-video.fs", "1" if self.fullscreen_emu else "0", "-cheats", "1", game_path])
         ti.sleep(1)
-        with self.keyboard.pressed(Key.ctrl):
-            with self.keyboard.pressed(Key.alt):
-                self.keyboard.press(Key.left)
-                self.keyboard.release(Key.left)
+        # with self.keyboard.pressed(Key.ctrl):
+        #    with self.keyboard.pressed(Key.alt):
+        #        self.keyboard.press(Key.left)
+        #        self.keyboard.release(Key.left)
         self.keyboard.press('\\')
         self.keyboard.release('\\')
         # self.keyboard.press('d') # Hold down speed
@@ -125,6 +125,7 @@ class Gesture:
                 self.gesture.append("RUNNING RIGHT")
                 self.keyboard.press('d')
             if "JUMP" not in self.gesture and check_jump(self.keypoints):
+                self.gesture.append("JUMP")
                 self.keyboard.press('f')
             # self.check_crouch()
             # self.check_jump()
@@ -133,7 +134,7 @@ class Gesture:
             # self.check_wave('right')
             # self.check_hips()
             del self.keypoints[:len(self.keypoints) - 1]
-            if pygame.time.get_ticks() - self.buffer_time >= self.wait_length + 10:
+            if pygame.time.get_ticks() - self.buffer_time >= 10:
                 self.buffer_time = pygame.time.get_ticks()
                 self.release_keys()
             if pygame.time.get_ticks() - self.jump_time >= self.wait_length + 200:
@@ -150,8 +151,6 @@ class Gesture:
             self.keyboard.release('w')
         if "LEFT WAVE" not in self.gesture:
             self.keyboard.release('g')
-        if "JUMP" not in self.gesture:
-            self.keyboard.release('f')
         if "CROUCH" not in self.gesture:
             self.keyboard.release('s')
         if "ENTER" not in self.gesture:

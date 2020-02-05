@@ -62,7 +62,7 @@ def check_jump(frames):
         # If our wrists are detected and above the elbow then jump
         if l_wrist_y != 0.0 and l_wrist_y < l_elbow_y:
             return True
-        elif r_wrist_y != 0.0 and r_wrist_y < r_elbow_y:
+        if r_wrist_y != 0.0 and r_wrist_y < r_elbow_y:
             return True
 
     return False  # No detection
@@ -82,7 +82,7 @@ def check_run(frames):
         r_wrist = keypoints[Keypoints.RIGHT_WRIST]
 
         # Define our minimum delta to be half the distance between the person's shoulders
-        delta = euclidean_distance(l_shoulder, r_shoulder) * 0.5
+        delta = euclidean_distance(l_shoulder, r_shoulder) * 0.7
         # Check right wrist's distance on the x-axis from the right shoulder
         if abs(r_shoulder[1] - r_wrist[1]) > delta:
             return True
